@@ -1,6 +1,17 @@
-#include <iostream>
+#include <raylib.h>
 
 int main(void) {
-    std::cout << "Hello World!\n";
+    InitWindow(800, 450, "Maze Game");
+
+    while (!WindowShouldClose()) {
+        BeginDrawing();
+        
+        ClearBackground(BLACK);
+
+        EndDrawing();
+    }
+
+    CloseWindow();
+
     return 0;
 }
