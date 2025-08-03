@@ -16,6 +16,11 @@ if (SOURCES STREQUAL "")
 else()
     add_executable(${PROJECT_NAME} ${SOURCES})
 
+    target_compile_definitions(${PROJECT_NAME}
+        PRIVATE RE_LOGGER_ENABLED=1
+        PRIVATE RE_ASSERT_ENABLED=1
+    )
+
     target_include_directories(${PROJECT_NAME}
         PRIVATE ${PROJECT_SOURCE_DIR}/src
     )
