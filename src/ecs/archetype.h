@@ -2,6 +2,7 @@
 #define MG_SRC_ECS_ARCHETYPE_H
 
 #include "components.h"
+#include <unordered_map>
 
 namespace mg {
     typedef re::u32 EntityID;
@@ -25,15 +26,26 @@ namespace mg {
         EntityID createEntity();
         void destroyEntity(const EntityID entity_id);
 
-        // TODO: Add iterator
+        // TODO: Add query iterator
 
     private:
         struct ArchetypeChunk {
-            void* data = nullptr;
+            re::u8* data = nullptr;
+            EntityID* entities = nullptr;
+
+            ArchetypeChunk* prev = nullptr;
             ArchetypeChunk* next = nullptr;
         };
 
+        struct ArchetypeChunkIndex {
+            re::u32 chunk_index = 0;
+            re::u32 data_index = 0;
+        };
+
+        std::unordered_map<ComponentID, re::u32> m_component_to_offset = {};
+
         re::u32 m_tail_size = 0;
+        re::u32 m_tail_index = 0;
         ArchetypeChunk* m_tail = nullptr;
         ArchetypeChunk* m_head = nullptr;
 
@@ -42,6 +54,7 @@ namespace mg {
         const re::u32 k_chunk_capacity;
 
         EntityID m_next_entity_id = 0;
+        std::unordered_map<EntityID, ArchetypeChunkIndex> m_entity_to_index = {};
     };
 }
 
