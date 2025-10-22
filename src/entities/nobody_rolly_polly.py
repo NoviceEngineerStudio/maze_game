@@ -1,0 +1,2 @@
+class NobodyRollyPolly:
+    pass

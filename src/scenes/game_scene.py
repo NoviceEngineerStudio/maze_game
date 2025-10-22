@@ -1,9 +1,9 @@
 import pygame as pg
 from .scene import Scene
 from ..core import GameContext, createFont
-from ..entities import Player, MazeManager
 from .conclusion_scene import ConclusionScene
 from .shared_config import UI_RED_TEXT, UI_BLUE_TEXT
+from ..entities import Player, MazeManager, SkinnyBird, NobodyRollyPolly, ChaseEnemy
 
 GAME_DURATION: float = 45.0
 
@@ -22,6 +22,11 @@ class GameScene(Scene):
         self.blue_player: Player = Player(False, app.blue_joystick)
 
         self.maze_manager: MazeManager = MazeManager()
+
+        self.skinny_bird: SkinnyBird = SkinnyBird()
+        self.mason_mantis: ChaseEnemy = ChaseEnemy()
+        self.scorp_dragon: ChaseEnemy = ChaseEnemy()
+        self.rolly_polly: NobodyRollyPolly = NobodyRollyPolly()
 
         self.ui_font: pg.font.FontType = createFont(56)
 
