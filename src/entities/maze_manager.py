@@ -55,6 +55,8 @@ class MazeManager:
         self.purse_positions: list[tuple[int, int]] = []
         self.star_positions: list[tuple[int, int]] = []
 
+        self.purse_payloads: dict[tuple[int, int], int] = dict[tuple[int, int], int]()
+
         self.coin_animation_time: float = 0.0
         self.star_animation_time: float = 0.0
         self.shimmer_animation_time: float = 0.0
@@ -84,6 +86,12 @@ class MazeManager:
         self.shimmer_animation_index = 0
 
         self.coin_animation_direction = 1
+
+        self.coin_positions.clear()
+        self.treasure_positions.clear()
+        self.purse_positions.clear()
+        self.star_positions.clear()
+        self.purse_payloads.clear()
 
         layout_index: int = int(random() * len(self.layout_file_paths))
         layout: pg.Surface = pg.image.load(self.layout_file_paths[layout_index])
@@ -156,13 +164,14 @@ class MazeManager:
             self.shimmer_animation_time -= SHIMMER_ANIMATION_TIME
             self.shimmer_animation_index = (self.shimmer_animation_index + 1) % len(self.shimmer_textures)
 
-    def handleCollection(self, position: tuple[float, float]) -> PropType:
+    def handleCollection(self, position: tuple[float, float]) -> tuple[PropType, int]:
         position_x, position_y = position
         center_x, center_y = position_x + shared_config.HALF_GRID_CELL_SIZE, position_y + shared_config.HALF_GRID_CELL_SIZE
 
         x, y = int(center_x / shared_config.GRID_CELL_SIZE), int(center_y / shared_config.GRID_CELL_SIZE)
 
         if 0 <= x < shared_config.GRID_COLUMN_COUNT and 0 <= y < shared_config.GRID_ROW_COUNT:
+            payload: int = 0
             prop: PropType = self.prop_mask[x][y]
             self.prop_mask[x][y] = PropType.NONE
             
@@ -173,14 +182,29 @@ class MazeManager:
                     self.treasure_positions.remove((x, y))
                 case PropType.PURSE:
                     self.purse_positions.remove((x, y))
+                    purse_ammount: int | None = self.purse_payloads.get((x, y))
+                    if not purse_ammount is None:
+                        payload = purse_ammount
                 case PropType.STAR:
                     self.star_positions.remove((x, y))
                 case _:
                     pass
 
-            return prop
+            return (prop, payload)
         
-        return PropType.NONE
+        return (PropType.NONE, 0)
+
+    def dropPurse(self, position: tuple[float, float], purse_ammount: int) -> None:
+        if purse_ammount <= 0:
+            return
+        
+        position_x, position_y = position
+        x, y = int(position_x / shared_config.GRID_CELL_SIZE), int(position_y / shared_config.GRID_CELL_SIZE)
+
+        if 0 <= x < shared_config.GRID_COLUMN_COUNT and 0 <= y < shared_config.GRID_ROW_COUNT:
+            self.prop_mask[x][y] = PropType.PURSE
+            self.purse_positions.append((x, y))
+            self.purse_payloads[(x, y)] = purse_ammount
 
     def getSolidMask(self) -> list[list[bool]]:
         return self.solid_mask

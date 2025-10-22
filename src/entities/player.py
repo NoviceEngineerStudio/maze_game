@@ -25,16 +25,27 @@ JOYSTICK_AXIS_THRESHOLD: float = 0.5
 COIN_SCORE: int = 10
 TREASURE_SCORE: int = COIN_SCORE * 10
 
+STAR_POWER_DURATION: float = 10.0
+DEATH_ANIMATION_TIME: float = 0.2
+
+PURSE_DROP_AMMOUNT: int = 100
+
 class Player:
     def __init__(self, is_red: bool, joystick: pg.joystick.JoystickType) -> None:
         self.is_red: bool = is_red
         self.joystick: pg.joystick.JoystickType = joystick
 
         self.score: int = 0
+        self.is_dead: bool = False
 
         self.animation_index: int = 0
         self.animation_time: float = 0.0
         self.animation_frames: list[pg.Surface] = []
+        self.star_power_frames: list[pg.Surface] = getTextures(1, 6, root_indices=(0, 9))
+        self.death_frames: list[pg.Surface] = getTextures(1, 8, root_indices=(0, 8))
+
+        self.star_power_active: bool = False
+        self.star_power_time: float = 0.0
 
         self.position_x: float = 0.0
         self.position_y: float = 0.0
@@ -57,6 +68,10 @@ class Player:
 
     def reset(self) -> None:
         self.score = 0
+        self.is_dead: bool = False
+
+        self.star_power_active = False
+        self.star_power_time = 0.0
 
         if self.is_red:
             self.position_x = RED_PLAYER_INITIAL_X
@@ -74,6 +89,35 @@ class Player:
         return (self.position_x, self.position_y)
     
     def updateMovement(self, delta_time: float) -> None:
+        if self.is_dead:
+            self.animation_time += delta_time
+
+            if self.animation_time < DEATH_ANIMATION_TIME:
+                return
+            
+            self.animation_time -= DEATH_ANIMATION_TIME
+            self.animation_index += 1
+
+            if self.animation_index < len(self.death_frames):
+                return
+            
+            self.is_dead = False
+            self.animation_index = 0
+            self.animation_time = 0.0
+
+            if self.is_red:
+                self.position_x = RED_PLAYER_INITIAL_X
+                self.position_y = RED_PLAYER_INITIAL_Y
+                self.rotation = RED_PLAYER_INITIAL_ROTATION
+            else:
+                self.position_x = BLUE_PLAYER_INITIAL_X
+                self.position_y = BLUE_PLAYER_INITIAL_Y
+                self.rotation = BLUE_PLAYER_INITIAL_ROTATION
+
+        if self.star_power_active:
+            self.star_power_time -= delta_time
+            self.star_power_active = self.star_power_time > 0.0
+
         self.input_x: float = self.joystick.get_axis(Input.LEFT_STICK_Y_AXIS) * self.input_factor_x
         self.input_y: float = self.joystick.get_axis(Input.LEFT_STICK_X_AXIS) * self.input_factor_y
 
@@ -139,24 +183,53 @@ class Player:
                         self.position_x = closest_x + self.input_x * PLAYER_COLLISION_RADIUS
                         self.position_y = closest_y + self.input_y * PLAYER_COLLISION_RADIUS
 
-    def applyProp(self, prop: PropType) -> None:
+    def applyProp(self, prop: PropType, prop_payload: int) -> None:
         match prop:
             case PropType.COIN:
                 self.score += COIN_SCORE
             case PropType.TREASURE:
                 self.score += TREASURE_SCORE
             case PropType.PURSE:
-                pass
+                self.score += prop_payload
             case PropType.STAR:
-                pass
+                self.star_power_active = True
+                self.star_power_time = STAR_POWER_DURATION
             case _:
                 pass
 
+    def killPlayer(self) -> int:
+        # ? Cannot Die with Invincibility or if Already
+        if self.star_power_active or self.is_dead:
+            return 0
+        
+        self.is_dead = True
+        self.animation_index = 0
+        self.animation_time = 0.0
+
+        drop_ammount: int = min(self.score, PURSE_DROP_AMMOUNT)
+        self.score -= drop_ammount
+
+        return drop_ammount
+
     def draw(self, canvas: pg.Surface) -> None:
-        player_sprite: pg.Surface = pg.transform.rotate(self.animation_frames[self.animation_index], self.rotation)
+        if self.is_dead:
+            canvas.blit(
+                self.death_frames[self.animation_index],
+                (
+                    shared_config.GRID_RENDER_OFFSET_X + self.position_x,
+                    shared_config.GRID_RENDER_OFFSET_Y + self.position_y
+                )
+            )
+
+            return
+
+        base_texture: pg.Surface = (
+            self.star_power_frames[self.animation_index] if self.star_power_active
+            else self.animation_frames[self.animation_index]
+        )
 
         canvas.blit(
-            player_sprite,
+            pg.transform.rotate(base_texture, self.rotation),
             (
                 shared_config.GRID_RENDER_OFFSET_X + self.position_x,
                 shared_config.GRID_RENDER_OFFSET_Y + self.position_y
