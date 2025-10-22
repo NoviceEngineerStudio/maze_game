@@ -1,0 +1,42 @@
+# Byte-compiled / optimized / compiled files
+__pycache__/
+*.pyc
+*.pyd
+*.pyo
+*.egg-info/
+.pytest_cache/
+
+# Distribution / packaging
+.Python
+env/
+venv/
+pip-wheel-metadata/
+dist/
+build/
+*.egg
+
+# Editors and IDEs
+.idea/  # IntelliJ IDEA / PyCharm
+.vscode/ # VS Code
+*.swp # vim swap files
+*.bak # backup files
+*.swo # vim swap files
+
+# OS generated files
+.DS_Store # macOS
+Thumbs.db # Windows
+ehthumbs.db # Windows
+
+# Environment variables
+.env
+*.env
+
+# Testing
+.coverage
+htmlcov/
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# Game Files
+highscore.txt
