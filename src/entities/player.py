@@ -1,5 +1,6 @@
 import math
 import pygame as pg
+from .maze_manager import PropType
 from ..scenes import shared_config
 from ..core import Input, getTextures
 
@@ -20,6 +21,9 @@ BLUE_PLAYER_INITIAL_Y: float = RED_PLAYER_INITIAL_Y
 BLUE_PLAYER_INITIAL_ROTATION: float = RED_PLAYER_INITIAL_ROTATION + 180.0
 
 JOYSTICK_AXIS_THRESHOLD: float = 0.5
+
+COIN_SCORE: int = 10
+TREASURE_SCORE: int = COIN_SCORE * 10
 
 class Player:
     def __init__(self, is_red: bool, joystick: pg.joystick.JoystickType) -> None:
@@ -65,6 +69,9 @@ class Player:
 
     def getScore(self) -> int:
         return self.score
+    
+    def getPosition(self) -> tuple[float, float]:
+        return (self.position_x, self.position_y)
     
     def updateMovement(self, delta_time: float) -> None:
         self.input_x: float = self.joystick.get_axis(Input.LEFT_STICK_Y_AXIS) * self.input_factor_x
@@ -131,6 +138,19 @@ class Player:
                     else:
                         self.position_x = closest_x + self.input_x * PLAYER_COLLISION_RADIUS
                         self.position_y = closest_y + self.input_y * PLAYER_COLLISION_RADIUS
+
+    def applyProp(self, prop: PropType) -> None:
+        match prop:
+            case PropType.COIN:
+                self.score += COIN_SCORE
+            case PropType.TREASURE:
+                self.score += TREASURE_SCORE
+            case PropType.PURSE:
+                pass
+            case PropType.STAR:
+                pass
+            case _:
+                pass
 
     def draw(self, canvas: pg.Surface) -> None:
         player_sprite: pg.Surface = pg.transform.rotate(self.animation_frames[self.animation_index], self.rotation)

@@ -51,6 +51,7 @@ class ConclusionScene(Scene):
             with open(HIGHSCORE_FILE_PATH, "w") as highscore_file:
                 highscore_file.write(f"{self.win_score}")
 
+            self.highscore = self.win_score
             self.new_highscore = True
 
         match self.win_state:

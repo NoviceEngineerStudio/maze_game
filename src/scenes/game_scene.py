@@ -1,8 +1,8 @@
 import pygame as pg
 from .scene import Scene
 from ..core import GameContext, createFont
-from ..entities import Player, MazeManager
 from .conclusion_scene import ConclusionScene
+from ..entities import Player, MazeManager, PropType
 from .shared_config import UI_RED_TEXT, UI_BLUE_TEXT
 
 GAME_DURATION: float = 45.0
@@ -52,13 +52,26 @@ class GameScene(Scene):
         self.red_player.handleWallCollisions(self.maze_manager.getSolidMask())
         self.blue_player.handleWallCollisions(self.maze_manager.getSolidMask())
 
+        red_prop: PropType = self.maze_manager.handleCollection(self.red_player.getPosition())
+        blue_prop: PropType = self.maze_manager.handleCollection(self.blue_player.getPosition())
+
+        self.red_player.applyProp(red_prop)
+        self.blue_player.applyProp(blue_prop)
+
     def draw(self, canvas: pg.Surface) -> None:
         canvas_width, canvas_height = canvas.get_size()
 
         self.maze_manager.drawMaze(canvas)
+        self.maze_manager.drawProps(canvas)
+
+        # TODO: Draw Monsters
 
         self.red_player.draw(canvas)
         self.blue_player.draw(canvas)
+
+        # TODO: Draw Flashlight
+
+        self.maze_manager.drawShimmers(canvas)
 
         # ? UI Rendering
 
