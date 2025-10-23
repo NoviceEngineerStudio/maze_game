@@ -6,7 +6,7 @@ from ..core import Input, createFont, GameContext, getTexture
 
 PRESS_START_PROMPT: str = "Press Start"
 
-MENU_TITLE_BUFFER_Y: int = 64
+MENU_TITLE_BUFFER_Y: int = 0
 
 MENU_MONSTER_SPRITE_GAP: int = 128
 MENU_MONSTER_SPRITE_BUFFER_Y: int = 64
@@ -25,7 +25,7 @@ class MenuScene(Scene):
 
         self.animation_time: float = 0.0
 
-        self.title_texture: pg.Surface = getTexture(tile_size=(256, 128), source_path="./assets/sprites/spr_menu_title.png")
+        self.title_texture: pg.Surface = getTexture(tile_size=(368, 368), source_path="./assets/sprites/spr_menu_title.png")
 
         self.prompt_texture: pg.Surface = self.prompt_font.render(
             PRESS_START_PROMPT,

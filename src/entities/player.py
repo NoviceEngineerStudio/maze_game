@@ -88,7 +88,10 @@ class Player:
     def getPosition(self) -> tuple[float, float]:
         return (self.position_x, self.position_y)
     
-    def updateMovement(self, delta_time: float) -> None:
+    def isDead(self) -> bool:
+        return self.is_dead
+    
+    def update(self, delta_time: float) -> None:
         if self.is_dead:
             self.animation_time += delta_time
 
@@ -208,7 +211,7 @@ class Player:
 
         drop_ammount: int = min(self.score, PURSE_DROP_AMMOUNT)
         self.score -= drop_ammount
-
+        
         return drop_ammount
 
     def draw(self, canvas: pg.Surface) -> None:

@@ -38,6 +38,9 @@ class GameScene(Scene):
 
         self.maze_manager.reset()
 
+        self.skinny_bird.reset()
+        # TODO: Reset Monsters
+
     def exit(self) -> None:
         self.conclusion_scene.setFinalScores(
             self.red_player.getScore(),
@@ -51,17 +54,23 @@ class GameScene(Scene):
 
         self.maze_manager.update(delta_time)
 
-        self.red_player.updateMovement(delta_time)
-        self.blue_player.updateMovement(delta_time)
+        self.red_player.update(delta_time)
+        self.blue_player.update(delta_time)
 
-        self.red_player.handleWallCollisions(self.maze_manager.getSolidMask())
-        self.blue_player.handleWallCollisions(self.maze_manager.getSolidMask())
+        if not self.red_player.isDead():
+            self.red_player.handleWallCollisions(self.maze_manager.getSolidMask())
+            red_prop, red_prop_payload = self.maze_manager.handleCollection(self.red_player.getPosition())
+            self.red_player.applyProp(red_prop, red_prop_payload)
 
-        red_prop, red_prop_payload = self.maze_manager.handleCollection(self.red_player.getPosition())
-        blue_prop, blue_prop_payload = self.maze_manager.handleCollection(self.blue_player.getPosition())
+        if not self.blue_player.isDead():
+            self.blue_player.handleWallCollisions(self.maze_manager.getSolidMask())
+            blue_prop, blue_prop_payload = self.maze_manager.handleCollection(self.blue_player.getPosition())
+            self.blue_player.applyProp(blue_prop, blue_prop_payload)
 
-        self.red_player.applyProp(red_prop, red_prop_payload)
-        self.blue_player.applyProp(blue_prop, blue_prop_payload)
+        self.skinny_bird.update(delta_time, self.red_player, self.blue_player, self.maze_manager)
+        # TODO: Update Monster AIs
+
+        # TODO: Check Monster-Player Collisions
 
     def draw(self, canvas: pg.Surface) -> None:
         canvas_width, canvas_height = canvas.get_size()
@@ -69,6 +78,7 @@ class GameScene(Scene):
         self.maze_manager.drawMaze(canvas)
         self.maze_manager.drawProps(canvas)
 
+        self.skinny_bird.draw(canvas)
         # TODO: Draw Monsters
 
         self.red_player.draw(canvas)
