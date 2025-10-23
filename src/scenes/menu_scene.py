@@ -6,8 +6,6 @@ from ..core import Input, createFont, GameContext, getTexture
 
 PRESS_START_PROMPT: str = "Press Start"
 
-MENU_TITLE_BUFFER_Y: int = 0
-
 MENU_MONSTER_SPRITE_GAP: int = 128
 MENU_MONSTER_SPRITE_BUFFER_Y: int = 64
 MENU_MONSTER_SPRITE_SCALE: float = 7.0
@@ -25,7 +23,7 @@ class MenuScene(Scene):
 
         self.animation_time: float = 0.0
 
-        self.title_texture: pg.Surface = getTexture(tile_size=(368, 368), source_path="./assets/sprites/spr_menu_title.png")
+        self.title_texture: pg.Surface = getTexture(tile_size=(1200, 368), source_path="./assets/sprites/spr_menu_title.png")
 
         self.prompt_texture: pg.Surface = self.prompt_font.render(
             PRESS_START_PROMPT,
@@ -73,7 +71,7 @@ class MenuScene(Scene):
         canvas_width, canvas_height = canvas.get_size()
 
         title_width: int = self.title_texture.get_width()
-        canvas.blit(self.title_texture, ((canvas_width - title_width) // 2, MENU_TITLE_BUFFER_Y))
+        canvas.blit(self.title_texture, ((canvas_width - title_width) // 2, 0))
 
         prompt_width, prompt_height = self.prompt_texture.get_size()
         canvas.blit(self.prompt_texture, ((canvas_width - prompt_width) // 2, (canvas_height - prompt_height) // 2))
