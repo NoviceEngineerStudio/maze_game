@@ -43,7 +43,7 @@ class ChaseEnemy:
 
         self.__selectNewPath(target_position, maze)
 
-    def __checkPlayerCollision(self, player: Player, maze: MazeManager, is_target: bool) -> None:
+    def __checkPlayerCollision(self, player: Player, maze: MazeManager) -> None:
         if player.isDead():
             return
         
@@ -105,8 +105,8 @@ class ChaseEnemy:
         else:
             self.__selectNewPath(target_player.getPosition(), maze.getSolidMask())
 
-        self.__checkPlayerCollision(target_player, maze, True)
-        self.__checkPlayerCollision(other_player, maze, False)
+        self.__checkPlayerCollision(target_player, maze)
+        self.__checkPlayerCollision(other_player, maze)
 
     def draw(self, canvas: pg.Surface) -> None:
         canvas.blit(

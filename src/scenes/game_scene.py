@@ -59,7 +59,7 @@ class GameScene(Scene):
 
         self.skinny_bird.reset()
 
-        # TODO: Reset Monsters
+        self.rolly_polly.reset(self.maze_manager.getSolidMask())
 
         self.mason_mantis.reset(self.red_player.getPosition(), self.maze_manager.getSolidMask())
         self.scorp_dragon.reset(self.blue_player.getPosition(), self.maze_manager.getSolidMask())
@@ -92,7 +92,7 @@ class GameScene(Scene):
 
         self.skinny_bird.update(delta_time, self.red_player, self.blue_player, self.maze_manager)
 
-        # TODO: Update Monster AIs
+        self.rolly_polly.update(delta_time, self.red_player, self.blue_player, self.maze_manager)
 
         self.mason_mantis.update(delta_time, self.red_player, self.blue_player, self.maze_manager)
         self.scorp_dragon.update(delta_time, self.blue_player, self.red_player, self.maze_manager)
@@ -105,7 +105,7 @@ class GameScene(Scene):
 
         self.skinny_bird.draw(canvas)
 
-        # TODO: Draw Monsters
+        self.rolly_polly.draw(canvas)
 
         self.mason_mantis.draw(canvas)
         self.scorp_dragon.draw(canvas)
