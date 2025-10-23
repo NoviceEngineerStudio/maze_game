@@ -259,8 +259,8 @@ class MazeManager:
             canvas.blit(
                 shimmer_frame,
                 (
-                    x * shared_config.GRID_CELL_SIZE + shared_config.GRID_RENDER_OFFSET_X,
-                    y * shared_config.GRID_CELL_SIZE + shared_config.GRID_RENDER_OFFSET_Y
+                    x * shared_config.GRID_CELL_SIZE,
+                    y * shared_config.GRID_CELL_SIZE
                 )
             )
 
@@ -268,8 +268,8 @@ class MazeManager:
             canvas.blit(
                 shimmer_frame,
                 (
-                    x * shared_config.GRID_CELL_SIZE + shared_config.GRID_RENDER_OFFSET_X,
-                    y * shared_config.GRID_CELL_SIZE + shared_config.GRID_RENDER_OFFSET_Y
+                    x * shared_config.GRID_CELL_SIZE,
+                    y * shared_config.GRID_CELL_SIZE
                 )
             )
 
@@ -277,7 +277,7 @@ class MazeManager:
             canvas.blit(
                 shimmer_frame,
                 (
-                    x * shared_config.GRID_CELL_SIZE + shared_config.GRID_RENDER_OFFSET_X,
-                    y * shared_config.GRID_CELL_SIZE + shared_config.GRID_RENDER_OFFSET_Y
+                    x * shared_config.GRID_CELL_SIZE,
+                    y * shared_config.GRID_CELL_SIZE
                 )
             )

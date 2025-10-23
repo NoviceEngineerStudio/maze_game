@@ -25,6 +25,11 @@ class GameScene(Scene):
 
         self.conclusion_scene = conclusion_scene
 
+        self.effect_layer: pg.Surface = pg.Surface((
+            shared_config.GRID_CELL_SIZE * shared_config.GRID_COLUMN_COUNT,
+            shared_config.GRID_CELL_SIZE * shared_config.GRID_ROW_COUNT
+        ))
+
         self.flashlight_mask: pg.Surface = pg.Surface((
             shared_config.GRID_CELL_SIZE * shared_config.GRID_COLUMN_COUNT,
             shared_config.GRID_CELL_SIZE * shared_config.GRID_ROW_COUNT
@@ -150,9 +155,20 @@ class GameScene(Scene):
             special_flags=pg.BLEND_RGB_MULT
         )
 
-        self.maze_manager.drawShimmers(canvas)
+        self.effect_layer.fill((0, 0, 0))
+        self.maze_manager.drawShimmers(self.effect_layer)
 
-        # TODO: Apply Inverse Flashlight to Shimmers
+        self.effect_layer.blit(
+            self.flashlight_mask,
+            (0, 0),
+            special_flags=pg.BLEND_RGB_SUB
+        )
+
+        canvas.blit(
+            self.effect_layer,
+            (shared_config.GRID_RENDER_OFFSET_X, shared_config.GRID_RENDER_OFFSET_Y),
+            special_flags=pg.BLEND_RGB_ADD
+        )
 
         # ? UI Rendering
 
