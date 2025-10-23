@@ -9,8 +9,8 @@ from .maze_manager import MazeManager
 SKINNY_BIRD_MOVE_TIME: float = 10.0
 SKINNY_BIRD_ANIMATION_TIME: float = 0.15
 
-SKINNY_BIRD_INITIAL_X: float = 21 * shared_config.GRID_CELL_SIZE
-SKINNY_BIRD_INITIAL_Y: float = 11 * shared_config.GRID_CELL_SIZE
+SKINNY_BIRD_INITIAL_X: float = 21.0 * shared_config.GRID_CELL_SIZE
+SKINNY_BIRD_INITIAL_Y: float = 11.0 * shared_config.GRID_CELL_SIZE
 
 SKINNY_BIRD_MOVE_BUFFER: float = shared_config.GRID_CELL_SIZE * 6.0
 

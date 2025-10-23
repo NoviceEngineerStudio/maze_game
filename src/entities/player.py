@@ -1,10 +1,9 @@
 import math
 import pygame as pg
+from .__utils import RAD_2_DEG
 from .maze_manager import PropType
 from ..scenes import shared_config
 from ..core import Input, getTextures
-
-RAD_2_DEG: float = 180.0 / math.pi
 
 PLAYER_WALK_SPEED: float = 4.0 * shared_config.GRID_CELL_SIZE
 PLAYER_ANIMATION_FRAME_TIME: float = 0.1
