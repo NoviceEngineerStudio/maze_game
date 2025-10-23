@@ -199,7 +199,8 @@ class MazeManager:
             return
         
         position_x, position_y = position
-        x, y = int(position_x / shared_config.GRID_CELL_SIZE), int(position_y / shared_config.GRID_CELL_SIZE)
+        x: int = int((position_x + shared_config.HALF_GRID_CELL_SIZE) / shared_config.GRID_CELL_SIZE)
+        y: int = int((position_y + shared_config.HALF_GRID_CELL_SIZE) / shared_config.GRID_CELL_SIZE)
 
         if 0 <= x < shared_config.GRID_COLUMN_COUNT and 0 <= y < shared_config.GRID_ROW_COUNT:
             self.prop_mask[x][y] = PropType.PURSE

@@ -1,8 +1,8 @@
 import pygame as pg
 from .scene import Scene
+from ..scenes import shared_config
 from .conclusion_scene import ConclusionScene
-from ..core import GameContext, createFont, getTextures
-from .shared_config import UI_RED_TEXT, UI_BLUE_TEXT, GRID_CELL_SIZE
+from ..core import GameContext, createFont, getTextures, getTexture
 from ..entities import Player, MazeManager, SkinnyBird, NobodyRollyPolly, ChaseEnemy
 
 GAME_DURATION: float = 45.0
@@ -13,17 +13,24 @@ GAME_UI_BUFFER_Y: int = 16
 MASON_MANTIS_FRAME_TIME: float = 0.25
 SCORP_DRAGON_FRAME_TIME: float = 0.15
 
-MASON_MANTIS_INITIAL_X: float = 23.0 * GRID_CELL_SIZE
-MASON_MANTIS_INITIAL_Y: float = 11.0 * GRID_CELL_SIZE
+MASON_MANTIS_INITIAL_X: float = 23.0 * shared_config.GRID_CELL_SIZE
+MASON_MANTIS_INITIAL_Y: float = 11.0 * shared_config.GRID_CELL_SIZE
 
-SCORP_DRAGON_INITIAL_X: float = 21.0 * GRID_CELL_SIZE
-SCORP_DRAGON_INITIAL_Y: float = 13.0 * GRID_CELL_SIZE
+SCORP_DRAGON_INITIAL_X: float = 21.0 * shared_config.GRID_CELL_SIZE
+SCORP_DRAGON_INITIAL_Y: float = 13.0 * shared_config.GRID_CELL_SIZE
 
 class GameScene(Scene):
     def __init__(self, app: GameContext, conclusion_scene: ConclusionScene) -> None:
         super().__init__(app)
 
         self.conclusion_scene = conclusion_scene
+
+        self.flashlight_mask: pg.Surface = pg.Surface((
+            shared_config.GRID_CELL_SIZE * shared_config.GRID_COLUMN_COUNT,
+            shared_config.GRID_CELL_SIZE * shared_config.GRID_ROW_COUNT
+        ))
+
+        self.flashlight_texture: pg.Surface = getTexture(tile_size=(480, 480), source_path="./assets/sprites/spr_flashlight_fade.png")
 
         self.game_time: float = 0.0
 
@@ -113,34 +120,64 @@ class GameScene(Scene):
         self.red_player.draw(canvas)
         self.blue_player.draw(canvas)
 
-        # TODO: Draw Flashlight
+        red_x, red_y = self.red_player.getPosition()
+        blue_x, blue_y = self.blue_player.getPosition()
+
+        flash_width, flash_height = self.flashlight_texture.get_size()
+        half_flash_width, half_flash_height = flash_width * 0.5, flash_height * 0.5
+
+        self.flashlight_mask.fill((0, 0, 0))
+        self.flashlight_mask.blit(
+            self.flashlight_texture,
+            (
+                red_x + shared_config.HALF_GRID_CELL_SIZE - half_flash_width,
+                red_y + shared_config.HALF_GRID_CELL_SIZE - half_flash_height
+            ),
+            special_flags=pg.BLEND_RGB_ADD
+        )
+        self.flashlight_mask.blit(
+            self.flashlight_texture,
+            (
+                blue_x + shared_config.HALF_GRID_CELL_SIZE - half_flash_width,
+                blue_y + shared_config.HALF_GRID_CELL_SIZE - half_flash_height
+            ),
+            special_flags=pg.BLEND_RGB_ADD
+        )
+
+        canvas.blit(
+            self.flashlight_mask,
+            (shared_config.GRID_RENDER_OFFSET_X, shared_config.GRID_RENDER_OFFSET_Y),
+            special_flags=pg.BLEND_RGB_MULT
+        )
 
         self.maze_manager.drawShimmers(canvas)
+
+        # TODO: Apply Inverse Flashlight to Shimmers
 
         # ? UI Rendering
 
         red_score_text: pg.Surface = pg.transform.rotate(self.ui_font.render(
             f"{self.red_player.getScore()}pts",
             False,
-            UI_RED_TEXT
+            shared_config.UI_RED_TEXT
         ), 90.0)
 
         red_time_text: pg.Surface = pg.transform.rotate(self.ui_font.render(
             f"{int(self.game_time)}s",
             False,
-            UI_RED_TEXT
+            shared_config.UI_RED_TEXT
         ), 90.0)
 
         blue_score_text: pg.Surface = pg.transform.rotate(self.ui_font.render(
             f"{self.blue_player.getScore()}pts",
             False,
-            UI_BLUE_TEXT
+            shared_config.UI_BLUE_TEXT
         ), 270.0)
 
         blue_time_text: pg.Surface = pg.transform.rotate(self.ui_font.render(
             f"{int(self.game_time)}s",
             False,
-            UI_BLUE_TEXT
+            shared_config.UI_BLUE_TEXT
         ), 270.0)
 
         red_score_width, red_score_height = red_score_text.get_size()
