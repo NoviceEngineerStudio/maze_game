@@ -41,7 +41,10 @@ class NobodyRollyPolly:
         self.path: list[tuple[int, int]] = []
 
         self.hit_player: bool = False
-        self.roll_player_position: tuple[float, float] = (0.0, 0.0)
+        self.roll_position: tuple[int, int] = (0, 0)
+
+        self.roll_x_delta: int = 0
+        self.roll_y_delta: int = 0
 
         self.updateState: Callable[[float, Player, Player, MazeManager], None] = self.updatePatrolState
 
@@ -184,9 +187,11 @@ class NobodyRollyPolly:
             if int_y < int_player_y:
                 min_y = int_y
                 max_y = int_player_y
+                self.roll_y_delta = 1
             else:
                 min_y = int_player_y
                 max_y = int_y
+                self.roll_y_delta = -1
 
             found_wall: bool = False
             for y in range(min_y, max_y + 1):
@@ -195,7 +200,8 @@ class NobodyRollyPolly:
                     break
 
             if not found_wall:
-                self.roll_player_position = player_position
+                self.roll_position = (int_player_x, int_player_y)
+                self.roll_x_delta = 0
                 return True
             
         if int_y == int_player_y:
@@ -205,9 +211,11 @@ class NobodyRollyPolly:
             if int_x < int_player_x:
                 min_x = int_x
                 max_x = int_player_x
+                self.roll_x_delta = 1
             else:
                 min_x = int_player_x
                 max_x = int_x
+                self.roll_x_delta = -1
 
             found_wall: bool = False
             for x in range(min_x, max_x + 1):
@@ -216,7 +224,8 @@ class NobodyRollyPolly:
                     break
 
             if not found_wall:
-                self.roll_player_position = player_position
+                self.roll_position = (int_player_x, int_player_y)
+                self.roll_y_delta = 0
                 return True
 
         return False
@@ -271,13 +280,13 @@ class NobodyRollyPolly:
         maze: MazeManager
     ) -> None:
         if self.__animateLooping(NOBODY_CROUCH_FRAME_TIME):
-            self.enterRollState()
+            self.enterRollState(maze.getSolidMask())
 
     ########################################
     # Roll State                           #
     ########################################
 
-    def enterRollState(self) -> None:
+    def enterRollState(self, maze: list[list[bool]]) -> None:
         self.updateState = self.updateRollState
 
         self.animation_index = 0
@@ -287,11 +296,20 @@ class NobodyRollyPolly:
 
         self.hit_player = False
 
+        if abs(self.roll_x_delta) > 0 or abs(self.roll_y_delta) > 0:
+            roll_x, roll_y = self.roll_position
+
+            while 0 < roll_x < shared_config.GRID_COLUMN_COUNT - 1 and 0 < roll_y < shared_config.GRID_ROW_COUNT - 1:
+                if maze[roll_x + self.roll_x_delta][roll_y + self.roll_y_delta]:
+                    break
+
+                roll_x += self.roll_x_delta
+                roll_y += self.roll_y_delta
+
+            self.roll_position = (roll_x, roll_y)
+
         self.path_index = 0
-        self.path = [(
-            int(self.roll_player_position[0] / shared_config.GRID_CELL_SIZE),
-            int(self.roll_player_position[1] / shared_config.GRID_CELL_SIZE)
-        )]
+        self.path = [self.roll_position]
 
     def updateRollState(
         self,
