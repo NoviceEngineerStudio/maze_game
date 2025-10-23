@@ -114,6 +114,9 @@ def run() -> None:
 
     print("Running Application Main Loop")
 
+    # ? Remove the Mouse Cursor
+    pg.mouse.set_visible(False)
+
     # ? Enter the First Scene
     active_scene: Scene = __scenes[__scene_index]
     active_scene.enter()
