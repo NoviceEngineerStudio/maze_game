@@ -16,7 +16,7 @@ NOBODY_CROUCH_FRAME_TIME: float = 0.2
 NOBODY_ROLL_FRAME_TIME: float = 0.1
 
 NOBODY_WALK_SPEED: float = shared_config.GRID_CELL_SIZE * 2.0
-NOBODY_ROLL_SPEED: float = shared_config.GRID_CELL_SIZE * 4.5
+NOBODY_ROLL_SPEED: float = shared_config.GRID_CELL_SIZE * 3.75
 
 NOBODY_COLLISION_RADIUS_SQR: float = shared_config.HALF_GRID_CELL_SIZE * shared_config.HALF_GRID_CELL_SIZE
 
@@ -41,6 +41,7 @@ class NobodyRollyPolly:
         self.path: list[tuple[int, int]] = []
 
         self.hit_player: bool = False
+        self.roll_player_position: tuple[float, float] = (0.0, 0.0)
 
         self.updateState: Callable[[float, Player, Player, MazeManager], None] = self.updatePatrolState
 
@@ -111,6 +112,30 @@ class NobodyRollyPolly:
                 return True
             
         return False
+    
+    def __followPath(self, delta_time: float, move_speed: float) -> bool:
+        if self.path_index < len(self.path):
+            node_x_index, node_y_index = self.path[self.path_index]
+
+            node_x: float = node_x_index * shared_config.GRID_CELL_SIZE
+            node_y: float = node_y_index * shared_config.GRID_CELL_SIZE
+
+            delta_x: float = node_x - self.position_x
+            delta_y: float = node_y - self.position_y
+
+            node_dist: float = math.sqrt((delta_x * delta_x) + (delta_y * delta_y))
+
+            if node_dist <= NOBODY_PATH_ARRIVED_BUFFER:
+                self.path_index += 1
+            else:
+                self.position_x += delta_x * move_speed * delta_time / node_dist
+                self.position_y += delta_y * move_speed * delta_time / node_dist
+
+                self.rotation = 270.0 + math.atan2(delta_y, -delta_x) * RAD_2_DEG
+
+            return False
+        
+        return True
 
     ########################################
     # Patrol State                         #
@@ -143,6 +168,59 @@ class NobodyRollyPolly:
         self.path_index = 0
         self.path = performAStar(int_initial_position, (target_x, target_y), maze)
 
+    def __hasLineOfSight(self, player_position: tuple[float, float], maze: list[list[bool]]) -> bool:
+        player_x, player_y = player_position
+
+        int_x: int = int((self.position_x + shared_config.HALF_GRID_CELL_SIZE) / shared_config.GRID_CELL_SIZE)
+        int_y: int = int((self.position_y + shared_config.HALF_GRID_CELL_SIZE) / shared_config.GRID_CELL_SIZE)
+
+        int_player_x: int = int((player_x + shared_config.HALF_GRID_CELL_SIZE) / shared_config.GRID_CELL_SIZE)
+        int_player_y: int = int((player_y + shared_config.HALF_GRID_CELL_SIZE) / shared_config.GRID_CELL_SIZE)
+
+        if int_x == int_player_x:
+            min_y: int = 0
+            max_y: int = 0
+
+            if int_y < int_player_y:
+                min_y = int_y
+                max_y = int_player_y
+            else:
+                min_y = int_player_y
+                max_y = int_y
+
+            found_wall: bool = False
+            for y in range(min_y, max_y + 1):
+                if maze[int_x][y]:
+                    found_wall = True
+                    break
+
+            if not found_wall:
+                self.roll_player_position = player_position
+                return True
+            
+        if int_y == int_player_y:
+            min_x: int = 0
+            max_x: int = 0
+
+            if int_x < int_player_x:
+                min_x = int_x
+                max_x = int_player_x
+            else:
+                min_x = int_player_x
+                max_x = int_x
+
+            found_wall: bool = False
+            for x in range(min_x, max_x + 1):
+                if maze[x][int_y]:
+                    found_wall = True
+                    break
+
+            if not found_wall:
+                self.roll_player_position = player_position
+                return True
+
+        return False
+
     def enterPatrolState(self, maze: list[list[bool]]) -> None:
         self.updateState = self.updatePatrolState
 
@@ -162,27 +240,15 @@ class NobodyRollyPolly:
     ) -> None:
         self.__animateBackAndForth(NOBODY_PATROL_FRAME_TIME)
 
-        # TODO: Check Player Line of Sight
+        if self.__hasLineOfSight(red_player.getPosition(), maze.getSolidMask()):
+            self.enterCrouchState()
+            return
+        
+        if self.__hasLineOfSight(blue_player.getPosition(), maze.getSolidMask()):
+            self.enterCrouchState()
+            return
 
-        if self.path_index < len(self.path):
-            node_x_index, node_y_index = self.path[self.path_index]
-
-            node_x: float = node_x_index * shared_config.GRID_CELL_SIZE
-            node_y: float = node_y_index * shared_config.GRID_CELL_SIZE
-
-            delta_x: float = node_x - self.position_x
-            delta_y: float = node_y - self.position_y
-
-            node_dist: float = math.sqrt((delta_x * delta_x) + (delta_y * delta_y))
-
-            if node_dist <= NOBODY_PATH_ARRIVED_BUFFER:
-                self.path_index += 1
-            else:
-                self.position_x += delta_x * NOBODY_WALK_SPEED * delta_time / node_dist
-                self.position_y += delta_y * NOBODY_WALK_SPEED * delta_time / node_dist
-
-                self.rotation = 270.0 + math.atan2(delta_y, -delta_x) * RAD_2_DEG
-        else:
+        if self.__followPath(delta_time, NOBODY_WALK_SPEED):
             self.__selectPatrolPath(maze.getSolidMask())
 
     ########################################
@@ -208,7 +274,7 @@ class NobodyRollyPolly:
             self.enterRollState()
 
     ########################################
-    # Roll State                         #
+    # Roll State                           #
     ########################################
 
     def enterRollState(self) -> None:
@@ -221,7 +287,11 @@ class NobodyRollyPolly:
 
         self.hit_player = False
 
-        # TODO: Set Rolling Direction
+        self.path_index = 0
+        self.path = [(
+            int(self.roll_player_position[0] / shared_config.GRID_CELL_SIZE),
+            int(self.roll_player_position[1] / shared_config.GRID_CELL_SIZE)
+        )]
 
     def updateRollState(
         self,
@@ -236,10 +306,12 @@ class NobodyRollyPolly:
             self.enterHitState()
             return
 
-        # TODO: Roll To Target Point
+        if self.__followPath(delta_time, NOBODY_ROLL_SPEED):
+            self.enterHitState()
+            return
 
     ########################################
-    # Hit State                         #
+    # Hit State                            #
     ########################################
 
     def enterHitState(self) -> None:
