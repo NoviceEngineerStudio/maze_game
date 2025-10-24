@@ -249,13 +249,15 @@ class NobodyRollyPolly:
     ) -> None:
         self.__animateBackAndForth(NOBODY_PATROL_FRAME_TIME)
 
-        if self.__hasLineOfSight(red_player.getPosition(), maze.getSolidMask()):
-            self.enterCrouchState()
-            return
+        if not red_player.isDead():
+            if self.__hasLineOfSight(red_player.getPosition(), maze.getSolidMask()):
+                self.enterCrouchState()
+                return
         
-        if self.__hasLineOfSight(blue_player.getPosition(), maze.getSolidMask()):
-            self.enterCrouchState()
-            return
+        if not blue_player.isDead():
+            if self.__hasLineOfSight(blue_player.getPosition(), maze.getSolidMask()):
+                self.enterCrouchState()
+                return
 
         if self.__followPath(delta_time, NOBODY_WALK_SPEED):
             self.__selectPatrolPath(maze.getSolidMask())

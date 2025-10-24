@@ -17,6 +17,7 @@ class ApplicationCreateInfo:
 def __pollJoystick__(is_red: bool) -> int:
     assert pg.font.get_init()
     assert pg.display.get_init()
+    assert pg.joystick.get_init()
     
     default_font_name: str = pg.font.get_default_font()
     default_font: pg.font.FontType = pg.font.Font(default_font_name, 18)
@@ -30,10 +31,6 @@ def __pollJoystick__(is_red: bool) -> int:
             False,
             (0, 0, 0)
         )
-
-        window_surface.blit(prompt_text, (0, 0))
-
-        pg.display.flip()
     else:
         window_surface.fill((0, 0, 255))
 
@@ -43,9 +40,10 @@ def __pollJoystick__(is_red: bool) -> int:
             (0, 0, 0)
         )
 
-        window_surface.blit(prompt_text, (0, 0))
+    window_surface.blit(prompt_text, (0, 0))
+    pg.display.flip()
 
-        pg.display.flip()
+    wait_clock: pg.time.Clock = pg.time.Clock()
 
     while True:
         for event in pg.event.get():
@@ -54,13 +52,20 @@ def __pollJoystick__(is_red: bool) -> int:
                     raise SystemExit
                 case pg.JOYBUTTONUP:
                     if event.dict["button"] == Input.START_BUTTON:
-                        return event.dict["joy"]
+                        return int(event.dict["joy"])
                 case pg.JOYDEVICEADDED:
                     id: int = event.dict["device_index"]
                     joystick: pg.joystick.JoystickType = pg.joystick.Joystick(id)
                     joystick.init()
                 case _:
                     pass
+
+        for idx in range(pg.joystick.get_count()):
+            joystick: pg.joystick.JoystickType = pg.joystick.Joystick(idx)
+            if not joystick.get_init():
+                joystick.init()
+
+        wait_clock.tick(60.0)
 
 def init(create_info: ApplicationCreateInfo) -> None:
     global __context, __scene_index, __scenes
